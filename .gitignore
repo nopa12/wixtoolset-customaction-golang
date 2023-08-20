@@ -4,4 +4,6 @@ wix311-binaries
 *.pdb
 *.obj
 *.ilk
+*.exp
+*.lib
 go-dll/go-dll.h
