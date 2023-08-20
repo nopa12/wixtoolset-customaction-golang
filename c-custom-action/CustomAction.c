@@ -42,6 +42,7 @@ extern "C" BOOL WINAPI DllMain(
   case DLL_PROCESS_DETACH:
     WcaGlobalFinalize();
     close_log_file();
+    FreeLibrary(hDLL);
     break;
   }
 
