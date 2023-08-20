@@ -1,0 +1,1 @@
+#define LOG_PATH "\\windows\\temp\\c-go-wix.log"
