@@ -1,0 +1,7 @@
+wix311-binaries.zip
+wix311-binaries
+*.dll
+*.pdb
+*.obj
+*.ilk
+go-dll/go-dll.h
