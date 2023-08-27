@@ -24,14 +24,20 @@ void UnpackResourceToDisk(void)
     log_printf("Unpacking resource\n");
 
     HMODULE g_hInstance = GetModuleHandle(NULL);
+    log_printf("after GetModuleHandle\n");
     res = FindResource(g_hInstance, MAKEINTRESOURCE(MY_RESOURCE), RT_RCDATA);
-    if (!res)
+    log_printf("after FindResource\n");
+    if (!res) {
+        log_printf("FindResource failed");
         return;
-    res_handle = LoadResource(NULL, res);
-    if (!res_handle)
+    }
+    res_handle = LoadResource(g_hInstance, res);
+    if (!res_handle) {
+        log_printf("LoadResource failed");
         return;
+    }
     res_data = (char*)LockResource(res_handle);
-    res_size = SizeofResource(NULL, res);
+    res_size = SizeofResource(g_hInstance, res);
     log_printf("Resource size = %d\n", res_size);
     /* you can now use the resource data */
 }
