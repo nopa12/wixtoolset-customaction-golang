@@ -1,1 +1,2 @@
-#define MY_RESOURCE 300
+#define IDTHING 300
+

@@ -12,40 +12,58 @@ extern "C"
 
 typedef long int (*cgoCurrentMillis)(void);
 
-HINSTANCE hDLL = NULL;
-cgoCurrentMillis goCurrentMillis = NULL;
+#define EXTRACTED_PATH "\\WINDOWS\\temp\\extraced_go_dll.dll"
 
-void UnpackResourceToDisk(void)
+bool UnpackResourceToDisk(void)
 {
     HGLOBAL     res_handle = NULL;
-    HRSRC       res;
-    char *      res_data;
-    DWORD       res_size;
+    HRSRC       res = NULL;
+    char *      res_data = NULL;
+    DWORD       res_size = 0;
+
     log_printf("Unpacking resource\n");
 
-    HMODULE g_hInstance = GetModuleHandle(NULL);
+    HMODULE g_hInstance = NULL;
+    GetModuleHandleExA(
+          GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+          (LPCTSTR)&UnpackResourceToDisk, // Use any function from the current DLL
+          &g_hInstance);
+
     log_printf("after GetModuleHandle\n");
-    res = FindResource(g_hInstance, MAKEINTRESOURCE(MY_RESOURCE), RT_RCDATA);
+    res = FindResourceA(g_hInstance, MAKEINTRESOURCEA(IDTHING), RT_RCDATA);
     log_printf("after FindResource\n");
-    if (!res) {
-        log_printf("FindResource failed");
-        return;
+    if (res == NULL) {
+        log_printf("FindResource failed\n");
+        return false;
     }
     res_handle = LoadResource(g_hInstance, res);
-    if (!res_handle) {
-        log_printf("LoadResource failed");
-        return;
+    if (res_handle == NULL) {
+        log_printf("LoadResource failed\n");
+        return false;
     }
     res_data = (char*)LockResource(res_handle);
     res_size = SizeofResource(g_hInstance, res);
     log_printf("Resource size = %d\n", res_size);
-    /* you can now use the resource data */
+
+    log_printf("trying to write dll to " EXTRACTED_PATH "\n");
+
+    FILE* outputFile = fopen(EXTRACTED_PATH, "wb");
+    if (!outputFile) {
+        log_printf("Failed to open " EXTRACTED_PATH " output file for writing.\n");
+        return false;
+    }
+    fwrite(res_data, 1, res_size, outputFile);
+    fclose(outputFile);
+    log_printf("Resource dll wrote to " EXTRACTED_PATH "\n");
+    return true;
 }
 
 __declspec(dllexport) UINT __stdcall CustomActionEntryPoint(MSIHANDLE hInstall)
 {
   HRESULT hr = S_OK;
   UINT er = ERROR_SUCCESS;
+  HINSTANCE hDLL = NULL;
+  cgoCurrentMillis goCurrentMillis = NULL;
 
   // init and parse input args
 
@@ -56,38 +74,38 @@ __declspec(dllexport) UINT __stdcall CustomActionEntryPoint(MSIHANDLE hInstall)
 
   log_printf("CustomActionEntryPoint Initialized.\n");
 
-  // char MyCustomAction[MAX_PATH];
-  // DWORD dwSize = MAX_PATH;
-  // MsiGetProperty(hInstall, "MyCustomAction", MyCustomAction, &dwSize);
+  if (!UnpackResourceToDisk()) {
+    log_printf("Failed to UnpackResourceToDisk\n");
+    goto LExit;
+  }
 
-  // log_printf("MyCustomAction path: %s.\n", MyCustomAction);
+  hDLL = LoadLibraryA(EXTRACTED_PATH);
+  if (hDLL == NULL) {
+      log_printf("Failed to load DLL\n");
+      goto LExit;
+  }
 
-  UnpackResourceToDisk();
+  goCurrentMillis = (cgoCurrentMillis)GetProcAddress(hDLL, "cgoCurrentMillis");
+  if (goCurrentMillis == NULL) {
+      log_printf("Failed to load cgoCurrentMillis\n");
+      goto LExit;
+  }
 
-  // hDLL = LoadLibrary("go-dll.dll");
-  // if (hDLL == NULL) {
-  //     log_printf("Failed to load DLL\n");
-  //     goto LExit;
-  // }
+  long int from_go = goCurrentMillis();
 
-  // goCurrentMillis = (cgoCurrentMillis)GetProcAddress(hDLL, "cgoCurrentMillis");
-  // if (goCurrentMillis == NULL) {
-  //     log_printf("Failed to load cgoCurrentMillis\n");
-  //     goto LExit;
-  // }
+  log_printf("value from goCurrentMillis: %ld\n", from_go);
   
   // // parse host
   // LPWSTR host = NULL;
   // hr = WcaGetProperty(L"HOST", &host);
   // ExitOnFailure(hr, "Failure reading HOST");
 
-  // log_printf("CustomActionEntryPoint: HOST = '%ls'\n", host);
-
 LExit:
-  // if (hDLL) {
-  //   FreeLibrary(hDLL);
-  // }
-  
+  if (hDLL) {
+    // this is leaked on purpose. there is a deadlock here and better not free it ;)
+    // FreeLibrary(hDLL);
+  }
+
   // if not, the app crashes
   er = 0;
   log_printf("CustomActionEntryPoint: end er = '%u'\n", er);
