@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "go-dll.h": "c",
+        "logging.h": "c"
+    }
+}

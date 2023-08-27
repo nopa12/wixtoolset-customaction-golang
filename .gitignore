@@ -7,3 +7,7 @@ wix311-binaries
 *.exp
 *.lib
 go-dll/go-dll.h
+
+*.msi
+*.wixobj
+*.wixpdb
