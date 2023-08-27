@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include "logging.h"
+#include "resource.h"
 
 // disable exports mangling
 #ifdef __cplusplus
@@ -14,6 +15,26 @@ typedef long int (*cgoCurrentMillis)(void);
 HINSTANCE hDLL = NULL;
 cgoCurrentMillis goCurrentMillis = NULL;
 
+void UnpackResourceToDisk(void)
+{
+    HGLOBAL     res_handle = NULL;
+    HRSRC       res;
+    char *      res_data;
+    DWORD       res_size;
+    log_printf("Unpacking resource\n");
+
+    HMODULE g_hInstance = GetModuleHandle(NULL);
+    res = FindResource(g_hInstance, MAKEINTRESOURCE(MY_RESOURCE), RT_RCDATA);
+    if (!res)
+        return;
+    res_handle = LoadResource(NULL, res);
+    if (!res_handle)
+        return;
+    res_data = (char*)LockResource(res_handle);
+    res_size = SizeofResource(NULL, res);
+    log_printf("Resource size = %d\n", res_size);
+    /* you can now use the resource data */
+}
 
 __declspec(dllexport) UINT __stdcall CustomActionEntryPoint(MSIHANDLE hInstall)
 {
@@ -28,6 +49,14 @@ __declspec(dllexport) UINT __stdcall CustomActionEntryPoint(MSIHANDLE hInstall)
   ExitOnFailure(hr, "Failed to initialize");
 
   log_printf("CustomActionEntryPoint Initialized.\n");
+
+  // char MyCustomAction[MAX_PATH];
+  // DWORD dwSize = MAX_PATH;
+  // MsiGetProperty(hInstall, "MyCustomAction", MyCustomAction, &dwSize);
+
+  // log_printf("MyCustomAction path: %s.\n", MyCustomAction);
+
+  UnpackResourceToDisk();
 
   // hDLL = LoadLibrary("go-dll.dll");
   // if (hDLL == NULL) {

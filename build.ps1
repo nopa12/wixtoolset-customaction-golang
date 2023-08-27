@@ -13,15 +13,14 @@ if (Test-Path -Path $extractPath) {
     Expand-Archive -Path $zipFilePath -DestinationPath $extractPath
 }
 
+# build go-dll, must be done before custom action. cause it will be a resource of custom action
+cd go-dll
+& ".\build.ps1"
+cd ..\
+
 # build custom action
 cd c-custom-action
 Start-Process -NoNewWindow -FilePath ".\build_test.cmd"
-cd ..\
-
-
-# build go-dll
-cd go-dll
-& ".\build.ps1"
 cd ..\
 
 # Build object

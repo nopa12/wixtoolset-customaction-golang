@@ -6,6 +6,8 @@ wix311-binaries
 *.ilk
 *.exp
 *.lib
+*.res
+
 go-dll/go-dll.h
 
 *.msi
