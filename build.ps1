@@ -15,12 +15,12 @@ if (Test-Path -Path $extractPath) {
 
 # build go-dll, must be done before custom action. cause it will be a resource of custom action
 cd go-dll
-& ".\build.ps1"
+Start-Process -NoNewWindow powershell -ArgumentList "-File .\build.ps1" -Wait
 cd ..\
 
 # build custom action
 cd c-custom-action
-Start-Process -NoNewWindow -FilePath ".\build_test.cmd"
+Start-Process -NoNewWindow -FilePath ".\build_test.cmd" -Wait
 cd ..\
 
 # Build object
