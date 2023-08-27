@@ -15,47 +15,47 @@ HINSTANCE hDLL = NULL;
 cgoCurrentMillis goCurrentMillis = NULL;
 
 
-__declspec(dllexport) UINT __stdcall VerifyCustomAction(MSIHANDLE hInstall)
+__declspec(dllexport) UINT __stdcall CustomActionEntryPoint(MSIHANDLE hInstall)
 {
   HRESULT hr = S_OK;
   UINT er = ERROR_SUCCESS;
 
   // init and parse input args
 
-  log_printf("VerifyCustomAction called\n");
+  log_printf("CustomActionEntryPoint called\n");
 
-  hr = WcaInitialize(hInstall, "VerifyCustomAction");
+  hr = WcaInitialize(hInstall, "CustomActionEntryPoint");
   ExitOnFailure(hr, "Failed to initialize");
 
-  log_printf("VerifyCustomAction Initialized.\n");
+  log_printf("CustomActionEntryPoint Initialized.\n");
 
-  hDLL = LoadLibrary("go-dll.dll");
-  if (hDLL == NULL) {
-      log_printf("Failed to load DLL\n");
-      goto LExit;
-  }
+  // hDLL = LoadLibrary("go-dll.dll");
+  // if (hDLL == NULL) {
+  //     log_printf("Failed to load DLL\n");
+  //     goto LExit;
+  // }
 
-  goCurrentMillis = (cgoCurrentMillis)GetProcAddress(hDLL, "cgoCurrentMillis");
-  if (goCurrentMillis == NULL) {
-      log_printf("Failed to load cgoCurrentMillis\n");
-      goto LExit;
-  }
+  // goCurrentMillis = (cgoCurrentMillis)GetProcAddress(hDLL, "cgoCurrentMillis");
+  // if (goCurrentMillis == NULL) {
+  //     log_printf("Failed to load cgoCurrentMillis\n");
+  //     goto LExit;
+  // }
   
-  // parse host
-  LPWSTR host = NULL;
-  hr = WcaGetProperty(L"HOST", &host);
-  ExitOnFailure(hr, "Failure reading HOST");
+  // // parse host
+  // LPWSTR host = NULL;
+  // hr = WcaGetProperty(L"HOST", &host);
+  // ExitOnFailure(hr, "Failure reading HOST");
 
-  log_printf("VerifyCustomAction: HOST = '%ls'\n", host);
+  // log_printf("CustomActionEntryPoint: HOST = '%ls'\n", host);
 
 LExit:
-  if (hDLL) {
-    FreeLibrary(hDLL);
-  }
+  // if (hDLL) {
+  //   FreeLibrary(hDLL);
+  // }
   
   // if not, the app crashes
   er = 0;
-  log_printf("VerifyCustomAction: end er = '%u'\n", er);
+  log_printf("CustomActionEntryPoint: end er = '%u'\n", er);
   return WcaFinalize(er);
 }
 

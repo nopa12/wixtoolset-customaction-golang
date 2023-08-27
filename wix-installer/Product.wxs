@@ -25,5 +25,14 @@
       <ComponentRef Id="ProductComponent" />
     </Feature>
 
+    
+    <Binary Id="CCustomAction" SourceFile="..\c-custom-action\customaction.dll" />
+    <CustomAction Id="MyCustomAction" BinaryKey="CCustomAction" Execute="immediate" Return="check" DllEntry="CustomActionEntryPoint" />
+
+    <InstallUISequence>
+        <Custom Action="MyCustomAction" Before="LaunchConditions">NOT Installed</Custom>
+    </InstallUISequence>
+    
+
   </Product>
 </Wix>
